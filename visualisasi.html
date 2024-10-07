@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediksi Harga Komoditas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .result {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        input {
+            margin-bottom: 10px;
+            padding: 8px;
+            width: 200px;
+        }
+        button {
+            padding: 8px 12px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Prediksi Harga Komoditas</h1>
+    <label for="commodity">Komoditas:</label>
+    <input type="text" id="commodity" placeholder="Masukkan komoditas"><br>
+    
+    <label for="region">Wilayah:</label>
+    <input type="text" id="region" placeholder="Masukkan wilayah"><br>
+    
+    <button id="predictButton">Prediksi Harga</button>
+    
+    <div class="result" id="result"></div>
+
+    <script>
+        // Fungsi untuk membaca file dan mengembalikan data
+        async function readDataFile() {
+            const response = await fetch('prediksi_lstm.txt'); // Pastikan file ini tersedia di server
+            const text = await response.text();
+            const lines = text.split('\n').slice(1); // Menghapus header
+            const data = lines.map(line => {
+                const [index, actualPrice, predictedPrice] = line.split(',');
+                return { 
+                    actualPrice: parseFloat(actualPrice),
+                    predictedPrice: parseFloat(predictedPrice)
+                };
+            });
+            return data;
+        }
+
+        document.getElementById('predictButton').addEventListener('click', async function() {
+            const commodity = document.getElementById('commodity').value.toUpperCase().trim();
+            const region = document.getElementById('region').value.toUpperCase().trim();
+            const data = await readDataFile();
+            
+            // Mencari prediksi harga berdasarkan indeks
+            const index = data.findIndex(item => item.commodity === commodity && item.region === region);
+
+            if (index !== -1) {
+                const prediction = data[index];
+                document.getElementById('result').innerText = `Prediksi Harga untuk ${commodity} di ${region}:\nHarga Aktual: ${prediction.actualPrice.toFixed(2)}, Harga Prediksi: ${prediction.predictedPrice.toFixed(2)}`;
+            } else {
+                document.getElementById('result').innerText = `Data tidak ditemukan untuk ${commodity} di ${region}.`;
+            }
+        });
+    </script>
+
+</body>
+</html>
